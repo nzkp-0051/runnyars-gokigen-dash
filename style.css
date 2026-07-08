@@ -1,0 +1,372 @@
+:root {
+  color-scheme: light;
+  --bg: #fff7e8;
+  --bg-soft: #ffefd6;
+  --panel: #ffffff;
+  --panel-strong: #fffaf1;
+  --text: #3a2a1d;
+  --muted: #766858;
+  --primary: #ff7a59;
+  --primary-dark: #dc5637;
+  --secondary: #2c9ab7;
+  --accent: #f7c844;
+  --good: #4caa64;
+  --warn: #e78b30;
+  --danger: #d95757;
+  --line: #efd6b9;
+  --shadow: 0 14px 30px rgba(126, 76, 32, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(247, 200, 68, 0.22), transparent 34rem),
+    linear-gradient(180deg, var(--bg), #ffe9d4);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.78rem 1rem;
+  color: #ffffff;
+  background: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 5px 0 var(--primary-dark);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+
+button:hover {
+  background: #ff6b47;
+}
+
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--primary-dark);
+}
+
+button.secondary {
+  color: var(--text);
+  background: var(--accent);
+  box-shadow: 0 5px 0 #d9a82e;
+}
+
+button.ghost {
+  color: var(--text);
+  background: #fff4df;
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+button.danger {
+  background: var(--danger);
+  box-shadow: 0 5px 0 #b83d3d;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+  box-shadow: none;
+}
+
+input {
+  width: 100%;
+  min-height: 48px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  color: var(--text);
+  background: #ffffff;
+}
+
+input:focus {
+  outline: 3px solid rgba(44, 154, 183, 0.22);
+  border-color: var(--secondary);
+}
+
+.app-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.app {
+  min-height: calc(100vh - 36px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen {
+  width: 100%;
+}
+
+.panel {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: clamp(18px, 4vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow);
+}
+
+.title-panel {
+  text-align: center;
+}
+
+.cat-mark {
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 0.8rem;
+  border: 3px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel-strong);
+  font-size: 2.5rem;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0.7rem;
+  font-size: clamp(2rem, 9vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+h2 {
+  margin-bottom: 0.9rem;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+h3 {
+  margin-bottom: 0.7rem;
+  font-size: 1.1rem;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  justify-content: center;
+}
+
+.button-row button {
+  flex: 1 1 160px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.small-label {
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.runnyar-name {
+  margin: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  color: var(--text);
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.stat-card,
+.record-card,
+.result-card {
+  min-height: 92px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: var(--panel-strong);
+}
+
+.stat-value {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: clamp(1.45rem, 6vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.meter {
+  height: 10px;
+  margin-top: 0.65rem;
+  border-radius: 999px;
+  background: #f1dfc7;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  width: var(--value);
+  border-radius: inherit;
+  background: var(--secondary);
+}
+
+.meter-fill.fatigue-low {
+  background: var(--good);
+}
+
+.meter-fill.fatigue-mid {
+  background: var(--warn);
+}
+
+.meter-fill.fatigue-high {
+  background: var(--danger);
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.action-button {
+  min-height: 86px;
+  display: grid;
+  align-content: center;
+  gap: 0.2rem;
+  text-align: left;
+}
+
+.action-button span {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.section {
+  margin-top: 1rem;
+}
+
+.notice {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: #fff4df;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.history-list {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.history-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 0.45rem;
+}
+
+.comment {
+  margin: 1rem 0 0;
+  border-left: 5px solid var(--secondary);
+  padding: 0.8rem 0.95rem;
+  border-radius: 0 8px 8px 0;
+  background: #e9f8fb;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.footer-note {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 12px;
+  }
+
+  .app {
+    align-items: stretch;
+    min-height: calc(100vh - 24px);
+  }
+
+  .panel {
+    padding: 18px;
+  }
+
+  .top-bar {
+    display: grid;
+  }
+
+  .grid,
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-row {
+    display: grid;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+}
