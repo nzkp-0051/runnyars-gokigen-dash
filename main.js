@@ -76,6 +76,8 @@ const RACES = {
   }
 };
 
+const RACE_ENTRY_COUNT = 5;
+
 const app = document.querySelector("#app");
 
 let gameState = createFreshState();
@@ -343,6 +345,7 @@ function runRace(race, runnyar) {
     ...race,
     ...scoreInfo,
     placement: placement.label,
+    placementDisplay: placement.display,
     earnedNiboshi,
     comment
   };
@@ -352,11 +355,11 @@ function runRace(race, runnyar) {
 }
 
 function getPlacement(score) {
-  if (score >= 65) return { label: "1位" };
-  if (score >= 55) return { label: "2位" };
-  if (score >= 45) return { label: "3位" };
-  if (score >= 35) return { label: "5位" };
-  return { label: "参加賞" };
+  if (score >= 65) return { label: "1位", display: `${RACE_ENTRY_COUNT}匹中1位` };
+  if (score >= 55) return { label: "2位", display: `${RACE_ENTRY_COUNT}匹中2位` };
+  if (score >= 45) return { label: "3位", display: `${RACE_ENTRY_COUNT}匹中3位` };
+  if (score >= 35) return { label: "5位", display: `${RACE_ENTRY_COUNT}匹中5位` };
+  return { label: "参加賞", display: `${RACE_ENTRY_COUNT}匹中5位（参加賞）` };
 }
 
 function getNiboshiByPlacement(placement) {
@@ -374,6 +377,14 @@ function getNiboshiByPlacement(placement) {
 function createRaceComment(scoreInfo, runnyar, placement) {
   if (runnyar.fatigue >= 70) {
     return "つかれがたまって、本来の力を出しきれなかった……";
+  }
+
+  if (scoreInfo.randomValue <= -8) {
+    return "今日は少し走りが重かったけれど、最後まであきらめずに走った。";
+  }
+
+  if (scoreInfo.randomValue >= 10 && runnyar.mood >= 0) {
+    return "今日は気分よく足が伸びて、いつもより軽やかな走りを見せた！";
   }
 
   if (runnyar.mood >= 1 && placement === "1位") {
@@ -510,6 +521,7 @@ function showTitleScreen(message = "") {
     <section class="screen">
       <div class="panel title-panel">
         <div class="cat-mark" aria-hidden="true">🐾</div>
+        ${renderRunnyarPortrait("title")}
         <h1>らんにゃーず！<br>ごきげんダッシュ</h1>
         <p class="lead">
           1匹のらんにゃーを12ターン育てて、らんにゃーレースへ。<br>
@@ -519,6 +531,7 @@ function showTitleScreen(message = "") {
         <div class="button-row">
           <button type="button" data-action="new">はじめから</button>
           <button type="button" class="secondary" data-action="continue" ${hasSave ? "" : "disabled"}>つづきから</button>
+          <button type="button" class="ghost" data-action="how-to">遊び方</button>
           <button type="button" class="danger" data-action="reset">データリセット</button>
         </div>
         <p class="footer-note">HTML / CSS / JavaScript と localStorage だけで遊べます。</p>
@@ -528,7 +541,63 @@ function showTitleScreen(message = "") {
 
   app.querySelector('[data-action="new"]').addEventListener("click", startNewGame);
   app.querySelector('[data-action="continue"]').addEventListener("click", continueGame);
+  app.querySelector('[data-action="how-to"]').addEventListener("click", showHowToScreen);
   app.querySelector('[data-action="reset"]').addEventListener("click", resetGameData);
+}
+
+function showHowToScreen() {
+  app.innerHTML = `
+    <section class="screen">
+      <div class="panel">
+        <div class="top-bar">
+          <div>
+            <span class="small-label">はじめての育成ガイド</span>
+            <h2>遊び方</h2>
+          </div>
+          ${renderRunnyarPortrait("small")}
+        </div>
+
+        <div class="how-to-list">
+          <div class="how-to-item">
+            <span>1</span>
+            <div>
+              <h3>12ターン育てる</h3>
+              <p>毎ターン、あそびやおひるねを1つ選びます。能力を伸ばしつつ、つかれをためすぎないようにしましょう。</p>
+            </div>
+          </div>
+          <div class="how-to-item">
+            <span>2</span>
+            <div>
+              <h3>3ターンごとにレース</h3>
+              <p>3、6、9、12ターン目には、5匹で走るらんにゃーレースがあります。短距離はすばやさ、長距離はたいりょくが大事です。</p>
+            </div>
+          </div>
+          <div class="how-to-item">
+            <span>3</span>
+            <div>
+              <h3>きあいとごきげんも大切</h3>
+              <p>きあいが高いと、レースで大きく失速しにくくなります。ごきげんが良い日は軽やかに走れます。</p>
+            </div>
+          </div>
+          <div class="how-to-item">
+            <span>4</span>
+            <div>
+              <h3>卒業して次へつなぐ</h3>
+              <p>12ターン目のレース後に卒業します。最終能力と獲得にぼしに応じて、次のらんにゃーに応援ボーナスが入ります。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row section">
+          <button type="button" data-action="new">はじめから</button>
+          <button type="button" class="ghost" data-action="title">タイトルへ戻る</button>
+        </div>
+      </div>
+    </section>
+  `;
+
+  app.querySelector('[data-action="new"]').addEventListener("click", startNewGame);
+  app.querySelector('[data-action="title"]').addEventListener("click", () => showTitleScreen());
 }
 
 function showCreateRunnyarScreen() {
@@ -544,11 +613,12 @@ function showCreateRunnyarScreen() {
       <div class="panel">
         <div class="top-bar">
           <div>
-            <span class="small-label">${gameState.runnyarCount}匹目のらんにゃー</span>
-            <h2>新しいらんにゃー</h2>
+            <h2>${gameState.runnyarCount}匹目のらんにゃー</h2>
           </div>
           ${supportTotal > 0 ? `<span class="badge">応援ボーナス +${supportTotal}</span>` : ""}
         </div>
+
+        ${renderRunnyarPortrait("create")}
 
         <label class="stack">
           <span class="small-label">らんにゃー名</span>
@@ -703,12 +773,9 @@ function showRaceResultScreen() {
         </div>
 
         <div class="grid">
-          ${renderStatCard("レーススコア", result.score)}
-          ${renderStatCard("順位", result.placement)}
+          ${renderStatCard("結果", result.placementDisplay)}
           ${renderStatCard("獲得にぼし", result.earnedNiboshi)}
-          ${renderStatCard("ランダム値", result.randomValue)}
-          ${renderStatCard("きあいによるランダム範囲", `${result.randomMin}〜${result.randomMax}`)}
-          ${renderStatCard("つかれペナルティ", `-${result.fatiguePenalty}`)}
+          ${renderStatCard("距離タイプ", result.distanceType)}
         </div>
 
         <p class="comment">${result.comment}</p>
@@ -770,7 +837,7 @@ function showGraduationScreen() {
             ${runnyar.raceHistory.map((race) => `
               <li>
                 <span>${race.name}</span>
-                <strong>${race.placement} / ${race.earnedNiboshi}にぼし</strong>
+                <strong>${race.placementDisplay ?? race.placement} / ${race.earnedNiboshi}にぼし</strong>
               </li>
             `).join("")}
           </ul>
@@ -808,6 +875,14 @@ function renderBonusCard(label, value) {
     <div class="record-card">
       <span class="small-label">${label}</span>
       <span class="stat-value">+${value}</span>
+    </div>
+  `;
+}
+
+function renderRunnyarPortrait(size = "small") {
+  return `
+    <div class="runnyar-portrait runnyar-portrait-${size}">
+      <img src="assets/runnyar-mascot.png" alt="走る準備をしているらんにゃー">
     </div>
   `;
 }
