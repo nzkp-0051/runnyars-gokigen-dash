@@ -305,6 +305,30 @@ h3 {
   line-height: 1.6;
 }
 
+.action-result {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid #b9dbe4;
+  border-left: 6px solid var(--secondary);
+  border-radius: 8px;
+  padding: 0.85rem;
+  background: #edf9fb;
+}
+
+.action-result strong {
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.action-result ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
 .history-list {
   display: grid;
   gap: 0.5rem;

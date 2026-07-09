@@ -99,6 +99,8 @@ function createFreshState() {
       bestWins: 0
     },
     currentRunnyar: null,
+    pendingRaceTurn: null,
+    lastActionResult: null,
     lastRaceResult: null,
     lastGraduation: null
   };
@@ -201,6 +203,11 @@ function continueGame() {
   gameState = saved;
 
   if (gameState.currentRunnyar) {
+    if (gameState.pendingRaceTurn) {
+      showRaceStartScreen();
+      return;
+    }
+
     showTrainingScreen();
     return;
   }
@@ -225,6 +232,8 @@ function createRunnyar(name) {
     winCount: 0,
     raceHistory: []
   };
+  gameState.pendingRaceTurn = null;
+  gameState.lastActionResult = null;
   gameState.lastRaceResult = null;
   gameState.lastGraduation = null;
   saveGame();
@@ -239,18 +248,25 @@ function applyAction(actionId) {
     return;
   }
 
+  const before = {
+    stat: action.stat ? runnyar[action.stat] : null,
+    fatigue: runnyar.fatigue,
+    mood: runnyar.mood
+  };
+
   if (action.stat) {
     runnyar[action.stat] = clamp(runnyar[action.stat] + action.statAmount, 1, 100);
   }
 
   runnyar.fatigue = clamp(runnyar.fatigue + action.fatigueAmount, 0, 100);
   runnyar.mood = clamp(runnyar.mood + rollMoodChange(runnyar.fatigue), -2, 2);
+  gameState.lastActionResult = createActionResult(action, before, runnyar);
 
   const race = RACES[runnyar.turn];
   if (race) {
-    gameState.lastRaceResult = runRace(race, runnyar);
+    gameState.pendingRaceTurn = runnyar.turn;
     saveGame();
-    showRaceResultScreen();
+    showRaceStartScreen();
     return;
   }
 
@@ -271,6 +287,21 @@ function rollMoodChange(fatigue) {
   if (roll < 0.2) return 1;
   if (roll < 0.8) return 0;
   return -1;
+}
+
+function createActionResult(action, before, runnyar) {
+  const result = {
+    actionName: action.name,
+    statLabel: action.stat ? getStatLabel(action.stat) : null,
+    statBefore: before.stat,
+    statAfter: action.stat ? runnyar[action.stat] : null,
+    fatigueBefore: before.fatigue,
+    fatigueAfter: runnyar.fatigue,
+    moodBefore: before.mood,
+    moodAfter: runnyar.mood
+  };
+
+  return result;
 }
 
 // レーススコアは能力、状態、つかれ、きあいで補正されたランダム値から計算します。
@@ -378,8 +409,34 @@ function goNextAfterRace() {
   }
 
   runnyar.turn += 1;
+  gameState.lastActionResult = null;
   saveGame();
   showTrainingScreen();
+}
+
+function startPendingRace() {
+  const runnyar = gameState.currentRunnyar;
+  const race = RACES[gameState.pendingRaceTurn];
+
+  if (!runnyar) {
+    gameState.pendingRaceTurn = null;
+    saveGame();
+    showTitleScreen();
+    return;
+  }
+
+  if (!race) {
+    gameState.pendingRaceTurn = null;
+    saveGame();
+    showTrainingScreen();
+    return;
+  }
+
+  gameState.lastRaceResult = runRace(race, runnyar);
+  gameState.pendingRaceTurn = null;
+  gameState.lastActionResult = null;
+  saveGame();
+  showRaceResultScreen();
 }
 
 function graduateRunnyar() {
@@ -398,6 +455,8 @@ function graduateRunnyar() {
     supportBonus
   };
   gameState.currentRunnyar = null;
+  gameState.pendingRaceTurn = null;
+  gameState.lastActionResult = null;
   gameState.lastRaceResult = null;
   gameState.runnyarCount += 1;
 
@@ -478,6 +537,7 @@ function showCreateRunnyarScreen() {
     stamina: clamp(BASE_STATS.stamina + gameState.supportBonus.stamina, 1, 100),
     guts: clamp(BASE_STATS.guts + gameState.supportBonus.guts, 1, 100)
   };
+  const supportTotal = gameState.supportBonus.speed + gameState.supportBonus.stamina + gameState.supportBonus.guts;
 
   app.innerHTML = `
     <section class="screen">
@@ -487,7 +547,7 @@ function showCreateRunnyarScreen() {
             <span class="small-label">${gameState.runnyarCount}匹目のらんにゃー</span>
             <h2>新しいらんにゃー</h2>
           </div>
-          <span class="badge">応援ボーナスつき</span>
+          ${supportTotal > 0 ? `<span class="badge">応援ボーナス +${supportTotal}</span>` : ""}
         </div>
 
         <label class="stack">
@@ -552,6 +612,8 @@ function showTrainingScreen() {
           ${renderStatCard("歴代最多1位回数", `${gameState.records.bestWins}回`)}
         </div>
 
+        ${gameState.lastActionResult ? renderActionResult(gameState.lastActionResult) : ""}
+
         <div class="section">
           <h3>今日の行動</h3>
           <div class="action-grid">
@@ -570,6 +632,60 @@ function showTrainingScreen() {
   app.querySelectorAll("[data-action-id]").forEach((button) => {
     button.addEventListener("click", () => applyAction(button.dataset.actionId));
   });
+}
+
+function showRaceStartScreen() {
+  const runnyar = gameState.currentRunnyar;
+  const race = RACES[gameState.pendingRaceTurn];
+
+  if (!runnyar) {
+    gameState.pendingRaceTurn = null;
+    saveGame();
+    showTitleScreen();
+    return;
+  }
+
+  if (!race) {
+    gameState.pendingRaceTurn = null;
+    saveGame();
+    showTrainingScreen();
+    return;
+  }
+
+  app.innerHTML = `
+    <section class="screen">
+      <div class="panel">
+        <div class="top-bar">
+          <div>
+            <span class="small-label">${runnyar.turn}ターン目のらんにゃーレース</span>
+            <h2>${race.name}</h2>
+          </div>
+          <span class="badge">${race.distanceType}</span>
+        </div>
+
+        ${gameState.lastActionResult ? renderActionResult(gameState.lastActionResult) : ""}
+
+        <div class="grid section">
+          ${renderStatCard("すばやさ", runnyar.speed, true)}
+          ${renderStatCard("たいりょく", runnyar.stamina, true)}
+          ${renderStatCard("きあい", runnyar.guts, true)}
+          ${renderMoodCard(runnyar.mood)}
+          ${renderFatigueCard(runnyar.fatigue)}
+          ${renderStatCard("総獲得にぼし", `${runnyar.totalNiboshi}`)}
+        </div>
+
+        <p class="notice section">
+          今日の行動が終わりました。準備ができたら、${race.name}へ進みましょう。
+        </p>
+
+        <div class="button-row section">
+          <button type="button" data-action="start-race">レースへ進む</button>
+        </div>
+      </div>
+    </section>
+  `;
+
+  app.querySelector('[data-action="start-race"]').addEventListener("click", startPendingRace);
 }
 
 function showRaceResultScreen() {
@@ -692,6 +808,29 @@ function renderBonusCard(label, value) {
     <div class="record-card">
       <span class="small-label">${label}</span>
       <span class="stat-value">+${value}</span>
+    </div>
+  `;
+}
+
+function renderActionResult(result) {
+  const statLine = result.statLabel
+    ? `<li>${result.statLabel}: ${result.statBefore} → ${result.statAfter}</li>`
+    : "";
+  const moodText = result.moodBefore === result.moodAfter
+    ? `${MOOD_LABELS[result.moodBefore]}のまま`
+    : `${MOOD_LABELS[result.moodBefore]} → ${MOOD_LABELS[result.moodAfter]}`;
+
+  return `
+    <div class="action-result section">
+      <div>
+        <span class="small-label">行動結果</span>
+        <strong>${result.actionName}をしました</strong>
+      </div>
+      <ul>
+        ${statLine}
+        <li>つかれ: ${result.fatigueBefore} → ${result.fatigueAfter}</li>
+        <li>ごきげん: ${moodText}</li>
+      </ul>
     </div>
   `;
 }
